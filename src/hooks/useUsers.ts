@@ -54,10 +54,19 @@ export const useUsers = () => {
     await deleteDoc(doc(db, 'users', id));
   };
 
+  const toggleUserActive = async (id: string, currentState: boolean) => {
+    const ref = doc(db, 'users', id);
+    await updateDoc(ref, {
+      isActive: !currentState,
+      updatedAt: Timestamp.now()
+    });
+  };
+
   return {
     users,
     addUser,
     updateUser,
-    deleteUser
+    deleteUser,
+    toggleUserActive
   };
 };
