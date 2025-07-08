@@ -38,8 +38,8 @@ export const Navigation: React.FC<NavigationProps> = ({
                 <User className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-800">Hotel Operations GRM</h1>
-                <p className="text-xs text-gray-600">Guest Request Management</p>
+                <h1 className="text-xl font-bold text-gray-800">Novotel CM</h1>
+                <p className="text-xs text-gray-600">GRM by Nakul</p>
               </div>
             </div>
 
