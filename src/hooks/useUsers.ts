@@ -6,7 +6,7 @@ import {
   updateDoc,
   deleteDoc,
   doc,
-  Timestamp
+  Timestamp,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { User } from '../types';
@@ -26,40 +26,63 @@ export const useUsers = () => {
           department: raw.department,
           isActive: raw.isActive,
           createdAt: raw.createdAt?.toDate?.() || new Date(),
+          updatedAt: raw.updatedAt?.toDate?.() || raw.createdAt?.toDate?.() || new Date(),
           lastLogin: raw.lastLogin?.toDate?.() || null
         };
       });
-      setUsers(data);
+
+      const sorted = data.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      setUsers(sorted);
     });
 
     return () => unsubscribe();
   }, []);
 
-  const addUser = async (newUser: Omit<User, 'id'>) => {
-    await addDoc(collection(db, 'users'), {
-      ...newUser,
-      createdAt: Timestamp.now(),
-    });
+  const addUser = async (newUser: Omit<User, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      await addDoc(collection(db, 'users'), {
+        ...newUser,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now()
+      });
+    } catch (error) {
+      console.error('Error adding user:', error);
+    }
   };
 
   const updateUser = async (id: string, updatedFields: Partial<User>) => {
-    const ref = doc(db, 'users', id);
-    await updateDoc(ref, {
-      ...updatedFields,
-      updatedAt: Timestamp.now()
-    });
+    try {
+      const ref = doc(db, 'users', id);
+      await updateDoc(ref, {
+        ...updatedFields,
+        updatedAt: Timestamp.now()
+      });
+    } catch (error) {
+      console.error('Error updating user:', error);
+    }
   };
 
   const deleteUser = async (id: string) => {
-    await deleteDoc(doc(db, 'users', id));
+    try {
+      await deleteDoc(doc(db, 'users', id));
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    }
   };
 
-  const toggleUserActive = async (id: string, currentState: boolean) => {
-    const ref = doc(db, 'users', id);
-    await updateDoc(ref, {
-      isActive: !currentState,
-      updatedAt: Timestamp.now()
-    });
+  const toggleUserActive = async (id: string) => {
+    try {
+      const user = users.find(u => u.id === id);
+      if (!user) return;
+
+      const ref = doc(db, 'users', id);
+      await updateDoc(ref, {
+        isActive: !user.isActive,
+        updatedAt: Timestamp.now()
+      });
+    } catch (error) {
+      console.error('Error toggling user active status:', error);
+    }
   };
 
   return {

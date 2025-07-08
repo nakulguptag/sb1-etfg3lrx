@@ -1,66 +1,99 @@
-// src/hooks/useUsers.ts
-
 import { useEffect, useState } from 'react';
 import {
   collection,
   onSnapshot,
   addDoc,
   updateDoc,
-  deleteDoc,
   doc,
   Timestamp
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { User } from '../types';
+import { Request, Department, RequestStatus } from '../types';
 
-export const useUsers = () => {
-  const [users, setUsers] = useState<User[]>([]);
+export const useRequests = () => {
+  const [requests, setRequests] = useState<Request[]>([]);
 
+  // Real-time listener for Firestore collection
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
-      const data: User[] = snapshot.docs.map((docSnap) => {
+    const unsubscribe = onSnapshot(collection(db, 'guestRequests'), (snapshot) => {
+      const data: Request[] = snapshot.docs.map((docSnap) => {
         const raw = docSnap.data();
 
         return {
           id: docSnap.id,
-          name: raw.name,
-          email: raw.email,
-          role: raw.role,
+          roomNumber: raw.roomNumber,
           department: raw.department,
-          isActive: raw.isActive,
+          priority: raw.priority,
+          description: raw.description,
+          loggedBy: raw.loggedBy,
+          status: raw.status,
+          assignedTo: raw.assignedTo,
+          resolutionComments: raw.resolutionComments || '',
           createdAt: raw.createdAt?.toDate?.() || new Date(),
-          lastLogin: raw.lastLogin?.toDate?.() || null
+          updatedAt: raw.updatedAt?.toDate?.() || new Date(),
+          resolvedAt: raw.resolvedAt?.toDate?.() || undefined
         };
       });
-      setUsers(data);
+
+      setRequests(data);
     });
 
     return () => unsubscribe();
   }, []);
 
-  const addUser = async (newUser: Omit<User, 'id'>) => {
-    await addDoc(collection(db, 'users'), {
-      ...newUser,
+  // Add a new request
+  const addRequest = async (
+    newRequest: Omit<Request, 'id' | 'createdAt' | 'updatedAt'>
+  ) => {
+    await addDoc(collection(db, 'guestRequests'), {
+      ...newRequest,
       createdAt: Timestamp.now(),
-    });
-  };
-
-  const updateUser = async (id: string, updatedFields: Partial<User>) => {
-    const ref = doc(db, 'users', id);
-    await updateDoc(ref, {
-      ...updatedFields,
       updatedAt: Timestamp.now()
     });
   };
 
-  const deleteUser = async (id: string) => {
-    await deleteDoc(doc(db, 'users', id));
+  // Update request status
+  const updateRequestStatus = async (
+    id: string,
+    status: RequestStatus,
+    comments?: string
+  ) => {
+    const ref = doc(db, 'guestRequests', id);
+    await updateDoc(ref, {
+      status,
+      updatedAt: Timestamp.now(),
+      ...(status === 'Resolved' && {
+        resolvedAt: Timestamp.now(),
+        resolutionComments: comments || ''
+      })
+    });
+  };
+
+  // Get requests by department
+  const getRequestsByDepartment = (department: Department) => {
+    return requests.filter((req) => req.department === department);
+  };
+
+  // Get overdue requests (older than 15 minutes, not resolved)
+  const getOverdueRequests = () => {
+    const now = new Date();
+    return requests.filter((req) => {
+      if (req.status === 'Resolved') return false;
+
+      const createdAt = req.createdAt instanceof Date
+        ? req.createdAt
+        : new Date();
+
+      const minutesElapsed = (now.getTime() - createdAt.getTime()) / 1000 / 60;
+      return minutesElapsed > 15;
+    });
   };
 
   return {
-    users,
-    addUser,
-    updateUser,
-    deleteUser
+    requests,
+    addRequest,
+    updateRequestStatus,
+    getRequestsByDepartment,
+    getOverdueRequests
   };
 };
