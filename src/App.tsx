@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Navigation } from './components/Navigation';
 import { Dashboard } from './components/Dashboard';
 import { Analytics } from './components/Analytics';
@@ -7,7 +7,6 @@ import { RequestsList } from './components/RequestsList';
 import { RequestForm } from './components/RequestForm';
 import { UserManagement } from './components/UserManagement';
 import { NotificationSettings } from './components/NotificationSettings';
-import { NotificationService } from './components/NotificationService';
 import { useRequests } from './hooks/useRequests';
 import { Department, User } from './types';
 
