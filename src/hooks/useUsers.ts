@@ -1,5 +1,3 @@
-// src/hooks/useUsers.ts
-
 import { useEffect, useState } from 'react';
 import {
   collection,
@@ -20,7 +18,6 @@ export const useUsers = () => {
     const unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
       const data: User[] = snapshot.docs.map((docSnap) => {
         const raw = docSnap.data();
-
         return {
           id: docSnap.id,
           name: raw.name,
