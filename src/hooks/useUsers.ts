@@ -9,7 +9,7 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { User } from '../types';
+import { User, NewUser } from '../types';
 
 export const useUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -38,8 +38,8 @@ export const useUsers = () => {
           id: docSnap.id,
           name: raw.name ?? '',
           email: raw.email ?? '',
-          role: raw.role ?? '',
-          department: raw.department ?? '',
+          role: raw.role ?? 'Staff',
+          department: raw.department ?? 'Front Desk',
           isActive: raw.isActive ?? false,
           createdAt,
           updatedAt,
@@ -59,9 +59,7 @@ export const useUsers = () => {
     return () => unsubscribe();
   }, []);
 
-  const addUser = async (
-    newUser: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'lastLogin'>
-  ) => {
+  const addUser = async (newUser: NewUser) => {
     try {
       await addDoc(collection(db, 'users'), {
         ...newUser,
@@ -94,14 +92,11 @@ export const useUsers = () => {
     }
   };
 
-  const toggleUserActive = async (id: string) => {
+  const toggleUserActive = async (id: string, currentState: boolean) => {
     try {
-      const user = users.find((u) => u.id === id);
-      if (!user) return;
-
       const ref = doc(db, 'users', id);
       await updateDoc(ref, {
-        isActive: !user.isActive,
+        isActive: !currentState,
         updatedAt: Timestamp.now(),
       });
     } catch (error) {

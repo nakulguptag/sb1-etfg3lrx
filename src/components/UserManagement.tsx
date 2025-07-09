@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Users, Plus, Edit2, Trash2, Shield, UserCheck, Eye, EyeOff } from 'lucide-react';
+import {
+  Users, Plus, Edit2, Trash2, Shield, UserCheck, Eye, EyeOff
+} from 'lucide-react';
 import { User, UserRole, Department } from '../types';
 import { useUsers } from '../hooks/useUsers';
 
@@ -132,8 +134,88 @@ export const UserManagement: React.FC<UserManagementProps> = ({ currentUser }) =
   }
 
   return (
-    <div className="space-y-6">
-      {/* Rest of your UI remains the same */}
+    <div className="space-y-6 p-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <Users className="w-6 h-6" /> User Management
+        </h2>
+        <button
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+          onClick={() => {
+            setEditingUser(null);
+            setShowAddForm(!showAddForm);
+          }}
+        >
+          <Plus className="w-4 h-4" />
+          {showAddForm ? 'Cancel' : 'Add User'}
+        </button>
+      </div>
+
+      {showAddForm && (
+        <form onSubmit={editingUser ? handleUpdateUser : handleAddUser} className="bg-white p-4 rounded-lg shadow space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <input type="text" placeholder="Name" value={formData.name}
+              onChange={e => setFormData({ ...formData, name: e.target.value })} className="input" required />
+            <input type="email" placeholder="Email" value={formData.email}
+              onChange={e => setFormData({ ...formData, email: e.target.value })} className="input" required />
+            <select value={formData.role}
+              onChange={e => setFormData({ ...formData, role: e.target.value as UserRole })}
+              className="input">
+              {roles.map(role => (
+                <option key={role} value={role}>{role}</option>
+              ))}
+            </select>
+            <select value={formData.department}
+              onChange={e => setFormData({ ...formData, department: e.target.value as Department })}
+              className="input">
+              {departments.map(dept => (
+                <option key={dept} value={dept}>{dept}</option>
+              ))}
+            </select>
+            <input type={showPasswords['form'] ? 'text' : 'password'} placeholder="Password"
+              value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} className="input" />
+            <input type={showPasswords['form'] ? 'text' : 'password'} placeholder="Confirm Password"
+              value={formData.confirmPassword} onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })} className="input" />
+          </div>
+          <div className="flex justify-between items-center">
+            <div>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" onChange={() => togglePasswordVisibility('form')} />
+                Show Password
+              </label>
+              <button type="button" onClick={generatePassword} className="ml-4 text-blue-500 hover:underline">Generate Password</button>
+            </div>
+            <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+              {editingUser ? 'Update User' : 'Add User'}
+            </button>
+          </div>
+        </form>
+      )}
+
+      <div className="grid gap-4">
+        {users.map(user => (
+          <div key={user.id} className="bg-white border rounded p-4 flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-bold">{user.name}</h3>
+              <p className="text-sm text-gray-600">{user.email} | {user.department}</p>
+              <span className={`inline-block mt-1 px-2 py-1 text-xs border rounded ${getRoleColor(user.role)}`}>
+                {user.role}
+              </span>
+            </div>
+            <div className="flex gap-3 items-center">
+              <button onClick={() => handleEditUser(user)} title="Edit">
+                <Edit2 className="w-5 h-5 text-blue-500" />
+              </button>
+              <button onClick={() => handleToggleActive(user.id, user.isActive)} title="Toggle Active">
+                <UserCheck className={`w-5 h-5 ${user.isActive ? 'text-green-600' : 'text-gray-400'}`} />
+              </button>
+              <button onClick={() => handleDeleteUser(user.id)} title="Delete">
+                <Trash2 className="w-5 h-5 text-red-500" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

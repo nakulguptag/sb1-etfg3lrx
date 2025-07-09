@@ -1,17 +1,17 @@
-// User roles used in the system
-export type UserRole = 'Admin' | 'Manager' | 'Staff' | '';
+// Roles available in the system
+export type UserRole = 'Admin' | 'Manager' | 'Supervisor' | 'Staff';
 
 // Departments used in the hotel
 export type Department =
-  | 'Front Office'
+  | 'Front Desk'
   | 'Housekeeping'
   | 'Engineering'
   | 'F&B'
   | 'Security'
   | 'IT'
-  | '';
+  | 'Maintenance';
 
-// User object model (used across app and Firestore)
+// Full User object (used across app and Firestore)
 export interface User {
   id: string;
   name: string;
@@ -24,7 +24,10 @@ export interface User {
   lastLogin: Date | null;
 }
 
-// Used for the dashboard stats
+// For creating a new user (before ID and updatedAt are set)
+export type NewUser = Omit<User, 'id' | 'updatedAt'>;
+
+// Used for dashboard summaries
 export interface DashboardMetrics {
   totalRequests: number;
   openRequests: number;
