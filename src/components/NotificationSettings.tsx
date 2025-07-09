@@ -1,5 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Bell, AlertTriangle } from 'lucide-react';
+import {
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  onSnapshot,
+} from 'firebase/firestore';
+import { db, notificationRulesCollection } from '../firebase';
 import { Department, UserRole } from '../types';
 
 interface NotificationRule {
@@ -46,19 +54,36 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ curr
   });
   const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
 
-  const handleSave = () => {
-    if (editingRuleId) {
-      setRules(prev =>
-        prev.map(rule => (rule.id === editingRuleId ? { ...formData, id: editingRuleId } : rule))
-      );
-    } else {
-      const newRule: NotificationRule = {
-        ...formData,
-        id: Date.now().toString()
-      };
-      setRules(prev => [...prev, newRule]);
+  // 🔄 Real-time syncing with Firestore
+  useEffect(() => {
+    const unsubscribe = onSnapshot(notificationRulesCollection, (snapshot) => {
+      const fetchedRules: NotificationRule[] = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as NotificationRule[];
+      setRules(fetchedRules);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleSave = async () => {
+    const ruleData = {
+      ...formData,
+      methods: formData.methods.filter(m => ['email', 'push'].includes(m.type)) // Just to be safe
+    };
+
+    try {
+      if (editingRuleId) {
+        const docRef = doc(db, 'notificationRules', editingRuleId);
+        await updateDoc(docRef, ruleData);
+      } else {
+        await addDoc(notificationRulesCollection, ruleData);
+      }
+      resetForm();
+    } catch (err) {
+      console.error("Failed to save rule:", err);
     }
-    resetForm();
   };
 
   const resetForm = () => {
@@ -78,17 +103,27 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ curr
     setEditingRuleId(null);
   };
 
-  const toggleRule = (id: string) => {
-    setRules(prev => prev.map(rule => rule.id === id ? { ...rule, isActive: !rule.isActive } : rule));
+  const toggleRule = async (id: string, current: boolean) => {
+    try {
+      const ref = doc(db, 'notificationRules', id);
+      await updateDoc(ref, { isActive: !current });
+    } catch (err) {
+      console.error('Toggle error:', err);
+    }
   };
 
   const editRule = (rule: NotificationRule) => {
-    setFormData({ ...rule });
-    setEditingRuleId(rule.id);
+    const { id, ...rest } = rule;
+    setFormData(rest);
+    setEditingRuleId(id);
   };
 
-  const deleteRule = (id: string) => {
-    setRules(prev => prev.filter(rule => rule.id !== id));
+  const deleteRule = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'notificationRules', id));
+    } catch (err) {
+      console.error('Delete error:', err);
+    }
   };
 
   const updateMethodEnabled = (type: 'email' | 'push', enabled: boolean) => {
@@ -122,10 +157,13 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({ curr
               <div className="text-sm text-gray-500">
                 Notify: {rule.notifyRoles.join(', ')}
               </div>
+              <div className="text-xs text-gray-400">
+                Methods: {rule.methods.filter(m => m.enabled).map(m => m.type).join(', ')}
+              </div>
             </div>
             <div className="flex gap-2">
               <button onClick={() => editRule(rule)} className="text-blue-600">Edit</button>
-              <button onClick={() => toggleRule(rule.id)} className="text-orange-600">
+              <button onClick={() => toggleRule(rule.id, rule.isActive)} className="text-orange-600">
                 {rule.isActive ? 'Deactivate' : 'Activate'}
               </button>
               <button onClick={() => deleteRule(rule.id)} className="text-red-600">Delete</button>

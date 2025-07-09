@@ -8,17 +8,21 @@ import { RequestsList } from './components/RequestsList';
 import { RequestForm } from './components/RequestForm';
 import { UserManagement } from './components/UserManagement';
 import { NotificationSettings } from './components/NotificationSettings';
-import { NotificationPanel } from './components/NotificationPanel'; // ✅ slide-in panel
-import { useNotification } from './context/NotificationContext'; // ✅ hook from context
+import { NotificationPanel } from './components/NotificationPanel';
+import { useNotification } from './context/NotificationContext';
 import { useRequests } from './hooks/useRequests';
 import { Department, User } from './types';
+import { useGuestRequestTriggers } from './hooks/useGuestRequestTriggers'; // ✅ NEW
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [currentDepartment, setCurrentDepartment] = useState<Department | undefined>();
   const { requests, addRequest, updateRequestStatus, getRequestsByDepartment } = useRequests();
 
-  const { addNotification, openPanel } = useNotification(); // ✅ access context
+  const { addNotification, openPanel } = useNotification();
+
+  // ✅ Trigger guest request listeners
+  useGuestRequestTriggers();
 
   // ✅ Mock user
   const currentUser: User = {
@@ -33,13 +37,10 @@ function App() {
     lastLogin: new Date('2025-01-10T08:30:00')
   };
 
-  const handleViewChange = (view: string) => {
-    setCurrentView(view);
-  };
+  const handleViewChange = (view: string) => setCurrentView(view);
 
-  const handleDepartmentChange = (department: Department | '') => {
+  const handleDepartmentChange = (department: Department | '') =>
     setCurrentDepartment(department || undefined);
-  };
 
   const displayRequests = currentDepartment
     ? getRequestsByDepartment(currentDepartment)
@@ -77,10 +78,8 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* ✅ Global Toasts */}
       <Toaster position="top-right" reverseOrder={false} />
 
-      {/* ✅ Top Navigation */}
       <Navigation
         currentView={currentView}
         onViewChange={handleViewChange}
@@ -90,14 +89,10 @@ function App() {
         currentUser={currentUser}
       />
 
-      {/* ✅ Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            {renderContent()}
-          </div>
+          <div className="lg:col-span-2">{renderContent()}</div>
 
-          {/* ✅ Right Side: Form + Stats */}
           <div className="space-y-6">
             <RequestForm
               onSubmit={(formData) => {
@@ -108,7 +103,7 @@ function App() {
 
                 toast.success('✅ New request submitted!');
                 addNotification(`📝 Request from ${formData.loggedBy} added`);
-                openPanel(); // 👈 Opens the right-side panel
+                openPanel();
               }}
             />
 
@@ -143,7 +138,6 @@ function App() {
         </div>
       </div>
 
-      {/* ✅ Slide-in Notifications Panel */}
       <NotificationPanel />
     </div>
   );
