@@ -1,26 +1,17 @@
-export interface Request {
-  id: string;
-  roomNumber: string;
-  department: Department;
-  priority: Priority;
-  description: string;
-  loggedBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-  status: RequestStatus;
-  resolutionComments?: string;
-  resolvedAt?: Date;
-  assignedTo?: string;
-}
+// User roles used in the system
+export type UserRole = 'Admin' | 'Manager' | 'Staff' | '';
 
-export type Department = 'Housekeeping' | 'Engineering' | 'F&B' | 'Front Desk' | 'Maintenance';
+// Departments used in the hotel
+export type Department =
+  | 'Front Office'
+  | 'Housekeeping'
+  | 'Engineering'
+  | 'F&B'
+  | 'Security'
+  | 'IT'
+  | '';
 
-export type Priority = 'Low' | 'Medium' | 'High';
-
-export type RequestStatus = 'Open' | 'In Progress' | 'Resolved';
-
-export type UserRole = 'Staff' | 'Supervisor' | 'Manager' | 'Admin';
-
+// User object model (used across app and Firestore)
 export interface User {
   id: string;
   name: string;
@@ -29,15 +20,14 @@ export interface User {
   department: Department;
   isActive: boolean;
   createdAt: Date;
+  updatedAt: Date;
   lastLogin: Date | null;
 }
 
+// Used for the dashboard stats
 export interface DashboardMetrics {
   totalRequests: number;
   openRequests: number;
   inProgressRequests: number;
   resolvedRequests: number;
-  averageResolutionTime: number;
-  overdueRequests: number;
-  requestsByDepartment: Record<Department, number>;
 }

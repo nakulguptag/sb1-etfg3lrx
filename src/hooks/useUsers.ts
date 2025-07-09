@@ -16,34 +16,58 @@ export const useUsers = () => {
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
-      const data: User[] = snapshot.docs.map((docSnap) => {
-        const raw = docSnap.data();
-        return {
+      const data = snapshot.docs.map((docSnap) => {
+        const raw = docSnap.data() as Partial<User>;
+
+        const createdAt =
+          raw.createdAt instanceof Timestamp
+            ? raw.createdAt.toDate()
+            : new Date();
+
+        const updatedAt =
+          raw.updatedAt instanceof Timestamp
+            ? raw.updatedAt.toDate()
+            : createdAt;
+
+        const lastLogin =
+          raw.lastLogin instanceof Timestamp
+            ? raw.lastLogin.toDate()
+            : null;
+
+        const user: User = {
           id: docSnap.id,
-          name: raw.name,
-          email: raw.email,
-          role: raw.role,
-          department: raw.department,
-          isActive: raw.isActive,
-          createdAt: raw.createdAt?.toDate?.() || new Date(),
-          updatedAt: raw.updatedAt?.toDate?.() || raw.createdAt?.toDate?.() || new Date(),
-          lastLogin: raw.lastLogin?.toDate?.() || null
+          name: raw.name ?? '',
+          email: raw.email ?? '',
+          role: raw.role ?? '',
+          department: raw.department ?? '',
+          isActive: raw.isActive ?? false,
+          createdAt,
+          updatedAt,
+          lastLogin,
         };
+
+        return user;
       });
 
-      const sorted = data.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      const sorted = data.sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+      );
+
       setUsers(sorted);
     });
 
     return () => unsubscribe();
   }, []);
 
-  const addUser = async (newUser: Omit<User, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addUser = async (
+    newUser: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'lastLogin'>
+  ) => {
     try {
       await addDoc(collection(db, 'users'), {
         ...newUser,
         createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now()
+        updatedAt: Timestamp.now(),
+        lastLogin: null,
       });
     } catch (error) {
       console.error('Error adding user:', error);
@@ -55,7 +79,7 @@ export const useUsers = () => {
       const ref = doc(db, 'users', id);
       await updateDoc(ref, {
         ...updatedFields,
-        updatedAt: Timestamp.now()
+        updatedAt: Timestamp.now(),
       });
     } catch (error) {
       console.error('Error updating user:', error);
@@ -72,13 +96,13 @@ export const useUsers = () => {
 
   const toggleUserActive = async (id: string) => {
     try {
-      const user = users.find(u => u.id === id);
+      const user = users.find((u) => u.id === id);
       if (!user) return;
 
       const ref = doc(db, 'users', id);
       await updateDoc(ref, {
         isActive: !user.isActive,
-        updatedAt: Timestamp.now()
+        updatedAt: Timestamp.now(),
       });
     } catch (error) {
       console.error('Error toggling user active status:', error);
@@ -90,6 +114,6 @@ export const useUsers = () => {
     addUser,
     updateUser,
     deleteUser,
-    toggleUserActive
+    toggleUserActive,
   };
 };
