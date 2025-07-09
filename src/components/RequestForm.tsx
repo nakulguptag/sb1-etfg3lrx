@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, AlertCircle } from 'lucide-react';
+import { toast } from 'react-hot-toast'; // ✅ Import toast
 import { Department, Priority } from '../types';
 
 interface RequestFormProps {
@@ -33,6 +34,11 @@ export const RequestForm: React.FC<RequestFormProps> = ({ onSubmit }) => {
       ...formData,
       status: 'Open'
     });
+
+    // ✅ Show toast notification
+    toast.success('🎉 Request submitted successfully!');
+
+    // ✅ Reset form
     setFormData({
       title: '',
       roomNumber: '',

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Toaster, toast } from 'react-hot-toast';
 import { Navigation } from './components/Navigation';
 import { Dashboard } from './components/Dashboard';
 import { Analytics } from './components/Analytics';
@@ -7,6 +8,8 @@ import { RequestsList } from './components/RequestsList';
 import { RequestForm } from './components/RequestForm';
 import { UserManagement } from './components/UserManagement';
 import { NotificationSettings } from './components/NotificationSettings';
+import { NotificationPanel } from './components/NotificationPanel'; // ✅ slide-in panel
+import { useNotification } from './context/NotificationContext'; // ✅ hook from context
 import { useRequests } from './hooks/useRequests';
 import { Department, User } from './types';
 
@@ -14,13 +17,15 @@ function App() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [currentDepartment, setCurrentDepartment] = useState<Department | undefined>();
   const { requests, addRequest, updateRequestStatus, getRequestsByDepartment } = useRequests();
-  
-  // ✅ For now, using mock user (will replace with Firebase user next phase)
+
+  const { addNotification, openPanel } = useNotification(); // ✅ access context
+
+  // ✅ Mock user
   const currentUser: User = {
     id: '1',
     name: 'John Smith',
     email: 'john.smith@hotel.com',
-    role: 'Admin', // Change to 'Staff' to test role restriction
+    role: 'Admin',
     department: 'Front Desk',
     isActive: true,
     createdAt: new Date('2024-01-15'),
@@ -36,8 +41,8 @@ function App() {
     setCurrentDepartment(department || undefined);
   };
 
-  const displayRequests = currentDepartment 
-    ? getRequestsByDepartment(currentDepartment) 
+  const displayRequests = currentDepartment
+    ? getRequestsByDepartment(currentDepartment)
     : requests;
 
   const renderContent = () => {
@@ -59,7 +64,6 @@ function App() {
       case 'settings':
         return (
           <div className="space-y-6">
-            {/* ✅ Only show User Management for Admins */}
             {currentUser.role === 'Admin' && (
               <UserManagement currentUser={currentUser} />
             )}
@@ -73,21 +77,27 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* ✅ Global Toasts */}
+      <Toaster position="top-right" reverseOrder={false} />
+
+      {/* ✅ Top Navigation */}
       <Navigation
         currentView={currentView}
         onViewChange={handleViewChange}
         currentDepartment={currentDepartment}
         onDepartmentChange={handleDepartmentChange}
         requests={requests}
-        currentUser={currentUser} // Used to restrict tabs by role
+        currentUser={currentUser}
       />
-      
+
+      {/* ✅ Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             {renderContent()}
           </div>
-          
+
+          {/* ✅ Right Side: Form + Stats */}
           <div className="space-y-6">
             <RequestForm
               onSubmit={(formData) => {
@@ -95,6 +105,10 @@ function App() {
                   ...formData,
                   title: formData.title || 'Untitled',
                 });
+
+                toast.success('✅ New request submitted!');
+                addNotification(`📝 Request from ${formData.loggedBy} added`);
+                openPanel(); // 👈 Opens the right-side panel
               }}
             />
 
@@ -128,6 +142,9 @@ function App() {
           </div>
         </div>
       </div>
+
+      {/* ✅ Slide-in Notifications Panel */}
+      <NotificationPanel />
     </div>
   );
 }
