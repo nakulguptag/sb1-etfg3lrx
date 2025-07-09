@@ -15,15 +15,16 @@ function App() {
   const [currentDepartment, setCurrentDepartment] = useState<Department | undefined>();
   const { requests, addRequest, updateRequestStatus, getRequestsByDepartment } = useRequests();
   
-  // Mock current user - in a real app this would come from authentication
+  // ✅ For now, using mock user (will replace with Firebase user next phase)
   const currentUser: User = {
     id: '1',
     name: 'John Smith',
     email: 'john.smith@hotel.com',
-    role: 'Admin',
+    role: 'Admin', // Change to 'Staff' to test role restriction
     department: 'Front Desk',
     isActive: true,
     createdAt: new Date('2024-01-15'),
+    updatedAt: new Date(),
     lastLogin: new Date('2025-01-10T08:30:00')
   };
 
@@ -58,7 +59,10 @@ function App() {
       case 'settings':
         return (
           <div className="space-y-6">
-            <UserManagement currentUser={currentUser} />
+            {/* ✅ Only show User Management for Admins */}
+            {currentUser.role === 'Admin' && (
+              <UserManagement currentUser={currentUser} />
+            )}
             <NotificationSettings currentUser={currentUser} />
           </div>
         );
@@ -75,6 +79,7 @@ function App() {
         currentDepartment={currentDepartment}
         onDepartmentChange={handleDepartmentChange}
         requests={requests}
+        currentUser={currentUser} // Used to restrict tabs by role
       />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -84,8 +89,15 @@ function App() {
           </div>
           
           <div className="space-y-6">
-            <RequestForm onSubmit={addRequest} />
-            
+            <RequestForm
+              onSubmit={(formData) => {
+                addRequest({
+                  ...formData,
+                  title: formData.title || 'Untitled',
+                });
+              }}
+            />
+
             <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Stats</h3>
               <div className="space-y-3">

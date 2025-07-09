@@ -11,6 +11,9 @@ export type Department =
   | 'IT'
   | 'Maintenance';
 
+// Priority levels for guest requests
+export type Priority = 'Low' | 'Medium' | 'High';
+
 // Full User object (used across app and Firestore)
 export interface User {
   id: string;
@@ -34,3 +37,21 @@ export interface DashboardMetrics {
   inProgressRequests: number;
   resolvedRequests: number;
 }
+
+// ✅ Request object for guest request tracking
+export interface Request {
+  id: string;
+  title: string;
+  description: string;
+  roomNumber: string;
+  loggedBy: string;
+  status: 'Open' | 'In Progress' | 'Resolved';
+  department: Department;
+  createdAt: Date;
+  updatedAt?: Date;
+  completedAt?: Date | null;
+  priority: Priority;
+}
+
+// For creating a new guest request (before ID and timestamps)
+export type NewRequest = Omit<Request, 'id' | 'createdAt' | 'updatedAt' | 'completedAt'>;

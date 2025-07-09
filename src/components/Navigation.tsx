@@ -1,31 +1,50 @@
 import React from 'react';
-import { Home, ClipboardList, BarChart3, Settings, User, FileText } from 'lucide-react';
-import { Department } from '../types';
+import {
+  Home,
+  ClipboardList,
+  BarChart3,
+  Settings,
+  User as UserIcon,
+  FileText,
+} from 'lucide-react';
+
+import { Department, Request, User } from '../types';
 import { NotificationService } from './NotificationService';
 
 interface NavigationProps {
   currentView: string;
   onViewChange: (view: string) => void;
   currentDepartment?: Department;
-  onDepartmentChange: (department: Department) => void;
-  requests: any[];
+  onDepartmentChange: (department: Department | '') => void;
+  requests: Request[];
+  currentUser: User;
 }
 
-const departments: Department[] = ['Housekeeping', 'Engineering', 'F&B', 'Front Desk', 'Maintenance'];
+const departments: Department[] = [
+  'Housekeeping',
+  'Engineering',
+  'F&B',
+  'Front Desk',
+  'Maintenance',
+];
 
 export const Navigation: React.FC<NavigationProps> = ({
   currentView,
   onViewChange,
   currentDepartment,
   onDepartmentChange,
-  requests
+  requests,
+  currentUser,
 }) => {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'requests', label: 'All Requests', icon: ClipboardList },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'reports', label: 'Reports', icon: FileText },
-    { id: 'settings', label: 'Settings', icon: Settings }
+    // Show "Settings" only if user is Admin
+    ...(currentUser.role === 'Admin'
+      ? [{ id: 'settings', label: 'Settings', icon: Settings }]
+      : []),
   ];
 
   return (
@@ -35,7 +54,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           <div className="flex items-center space-x-8">
             <div className="flex items-center space-x-3">
               <div className="bg-blue-600 p-2 rounded-lg">
-                <User className="w-6 h-6 text-white" />
+                <UserIcon className="w-6 h-6 text-white" />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-800">Novotel CM</h1>
@@ -63,17 +82,19 @@ export const Navigation: React.FC<NavigationProps> = ({
 
           <div className="flex items-center space-x-4">
             <NotificationService requests={requests} />
-            <div className="text-sm text-gray-600">
-              Department:
-            </div>
+            <div className="text-sm text-gray-600">Department:</div>
             <select
               value={currentDepartment || ''}
-              onChange={(e) => onDepartmentChange(e.target.value as Department)}
+              onChange={(e) =>
+                onDepartmentChange(e.target.value as Department)
+              }
               className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">All Departments</option>
-              {departments.map(dept => (
-                <option key={dept} value={dept}>{dept}</option>
+              {departments.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
               ))}
             </select>
           </div>
