@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 import { Navigation } from './components/Navigation';
-import { Dashboard } from './components/Dashboard';
-import { Analytics } from './components/Analytics';
+import { Dashboard } from './components/Dashboard'; // ✅ formerly Analytics
 import { Reports } from './components/Reports';
 import { RequestsList } from './components/RequestsList';
 import { RequestForm } from './components/RequestForm';
@@ -12,7 +11,7 @@ import { NotificationPanel } from './components/NotificationPanel';
 import { useNotification } from './context/NotificationContext';
 import { useRequests } from './hooks/useRequests';
 import { Department, User } from './types';
-import { useGuestRequestTriggers } from './hooks/useGuestRequestTriggers'; // ✅ NEW
+import { useGuestRequestTriggers } from './hooks/useGuestRequestTriggers'; // ✅
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -58,8 +57,6 @@ function App() {
             currentDepartment={currentDepartment}
           />
         );
-      case 'analytics':
-        return <Analytics requests={displayRequests} />;
       case 'reports':
         return <Reports requests={requests} />;
       case 'settings':

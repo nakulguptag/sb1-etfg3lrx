@@ -1,32 +1,14 @@
 import React from 'react';
-import {
-  Home,
-  ClipboardList,
-  BarChart3,
-  Settings,
-  User as UserIcon,
-  FileText,
-} from 'lucide-react';
-
-import { Department, Request, User } from '../types';
-import { NotificationService } from './NotificationService';
+import { Department, Request, User } from '../types'; // ✅ Adjust the import path if needed
 
 interface NavigationProps {
   currentView: string;
   onViewChange: (view: string) => void;
-  currentDepartment?: Department;
-  onDepartmentChange: (department: Department | '') => void;
+  currentDepartment?: Department | '';
+  onDepartmentChange: (dept: Department | '') => void;
   requests: Request[];
   currentUser: User;
 }
-
-const departments: Department[] = [
-  'Housekeeping',
-  'Engineering',
-  'F&B',
-  'Front Desk',
-  'Maintenance',
-];
 
 export const Navigation: React.FC<NavigationProps> = ({
   currentView,
@@ -36,70 +18,64 @@ export const Navigation: React.FC<NavigationProps> = ({
   requests,
   currentUser,
 }) => {
-  const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'requests', label: 'All Requests', icon: ClipboardList },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'reports', label: 'Reports', icon: FileText },
-    // Show "Settings" only if user is Admin
-    ...(currentUser.role === 'Admin'
-      ? [{ id: 'settings', label: 'Settings', icon: Settings }]
-      : []),
-  ];
-
   return (
-    <div className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center space-x-8">
-            <div className="flex items-center space-x-3">
-              <div className="bg-blue-600 p-2 rounded-lg">
-                <UserIcon className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-800">Novotel CM</h1>
-                <p className="text-xs text-gray-600">GRM by Nakul</p>
-              </div>
-            </div>
+    <nav className="bg-white shadow-sm border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        <div className="flex space-x-6">
+          <button
+            onClick={() => onViewChange('dashboard')}
+            className={`text-sm font-medium ${
+              currentView === 'dashboard' ? 'text-blue-600' : 'text-gray-600'
+            }`}
+          >
+            Dashboard
+          </button>
 
-            <nav className="flex space-x-6">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => onViewChange(item.id)}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    currentView === item.id
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
-                  }`}
-                >
-                  <item.icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </button>
-              ))}
-            </nav>
-          </div>
+          <button
+            onClick={() => onViewChange('requests')}
+            className={`text-sm font-medium ${
+              currentView === 'requests' ? 'text-blue-600' : 'text-gray-600'
+            }`}
+          >
+            All Requests
+          </button>
 
-          <div className="flex items-center space-x-4">
-            <NotificationService requests={requests} />
-            <div className="text-sm text-gray-600">Department:</div>
-            <select
-              value={currentDepartment || ''}
-              onChange={(e) =>
-                onDepartmentChange(e.target.value as Department)
-              }
-              className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">All Departments</option>
-              {departments.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
-          </div>
+          <button
+            onClick={() => onViewChange('reports')}
+            className={`text-sm font-medium ${
+              currentView === 'reports' ? 'text-blue-600' : 'text-gray-600'
+            }`}
+          >
+            Reports
+          </button>
+
+          <button
+            onClick={() => onViewChange('settings')}
+            className={`text-sm font-medium ${
+              currentView === 'settings' ? 'text-blue-600' : 'text-gray-600'
+            }`}
+          >
+            Settings
+          </button>
+        </div>
+
+        <div>
+          <label className="text-sm text-gray-500 mr-2">Department:</label>
+          <select
+            value={currentDepartment || ''}
+            onChange={(e) => onDepartmentChange(e.target.value as Department | '')}
+            className="text-sm border rounded px-2 py-1"
+          >
+            <option value="">All</option>
+            <option value="Front Desk">Front Desk</option>
+            <option value="Housekeeping">Housekeeping</option>
+            <option value="Engineering">Engineering</option>
+            <option value="F&B">F&B</option>
+            <option value="Security">Security</option>
+            {/* Add more if needed */}
+          </select>
         </div>
       </div>
-    </div>
+    </nav>
   );
 };
