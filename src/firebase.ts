@@ -1,5 +1,7 @@
+// ✅ src/firebase.ts
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection } from "firebase/firestore";
+import { getMessaging, onMessage, getToken } from "firebase/messaging";
 
 // ✅ Firebase Config
 const firebaseConfig = {
@@ -17,5 +19,9 @@ const app = initializeApp(firebaseConfig);
 // ✅ Firestore Instance
 export const db = getFirestore(app);
 
-// ✅ Export Collection Reference
+// ✅ Notification Rules Collection
 export const notificationRulesCollection = collection(db, 'notificationRules');
+
+// ✅ Firebase Messaging Instance
+export const messaging = getMessaging(app);
+export { onMessage, getToken };

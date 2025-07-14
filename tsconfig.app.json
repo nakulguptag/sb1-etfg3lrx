@@ -18,7 +18,11 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Key fix */
+    "types": []
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["node_modules", "babel__core"]
 }

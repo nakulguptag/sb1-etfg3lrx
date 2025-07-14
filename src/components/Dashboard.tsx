@@ -5,7 +5,6 @@ import { startOfDay, endOfDay } from 'date-fns';
 import { BarChart3, Clock, AlertTriangle, CheckCircle, Users } from 'lucide-react';
 import { useRequests } from '../hooks/useRequests';
 import { Request } from '../types';
-import { Timestamp } from 'firebase/firestore';
 
 export const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -16,16 +15,12 @@ export const Dashboard = () => {
     const start = startOfDay(selectedDate);
     const end = endOfDay(selectedDate);
 
-    const filtered = (requests || []).filter((req) => {
-      let createdDate: Date | null = null;
+    const filtered = requests.filter((req) => {
+      const createdAt = req.createdAt instanceof Date
+        ? req.createdAt
+        : req.createdAt?.toDate?.();
 
-      if (req.createdAt instanceof Timestamp) {
-        createdDate = req.createdAt.toDate();
-      } else if (req.createdAt instanceof Date) {
-        createdDate = req.createdAt;
-      }
-
-      return createdDate && createdDate >= start && createdDate <= end;
+      return createdAt && createdAt >= start && createdAt <= end;
     });
 
     setFilteredRequests(filtered);

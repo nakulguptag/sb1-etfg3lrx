@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 import { Navigation } from './components/Navigation';
-import { Dashboard } from './components/Dashboard'; // ✅ formerly Analytics
+import { Dashboard } from './components/Dashboard';
 import { Reports } from './components/Reports';
 import { RequestsList } from './components/RequestsList';
 import { RequestForm } from './components/RequestForm';
@@ -11,19 +11,17 @@ import { NotificationPanel } from './components/NotificationPanel';
 import { useNotification } from './context/NotificationContext';
 import { useRequests } from './hooks/useRequests';
 import { Department, User } from './types';
-import { useGuestRequestTriggers } from './hooks/useGuestRequestTriggers'; // ✅
+import { useGuestRequestTriggers } from './hooks/useGuestRequestTriggers';
+import { usePushNotifications } from './hooks/usePushNotifications';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [currentDepartment, setCurrentDepartment] = useState<Department | undefined>();
   const { requests, addRequest, updateRequestStatus, getRequestsByDepartment } = useRequests();
-
   const { addNotification, openPanel } = useNotification();
 
-  // ✅ Trigger guest request listeners
   useGuestRequestTriggers();
 
-  // ✅ Mock user
   const currentUser: User = {
     id: '1',
     name: 'John Smith',
@@ -36,8 +34,10 @@ function App() {
     lastLogin: new Date('2025-01-10T08:30:00')
   };
 
-  const handleViewChange = (view: string) => setCurrentView(view);
+  // ✅ Enable Push Notifications
+  usePushNotifications(currentUser);
 
+  const handleViewChange = (view: string) => setCurrentView(view);
   const handleDepartmentChange = (department: Department | '') =>
     setCurrentDepartment(department || undefined);
 
@@ -48,7 +48,7 @@ function App() {
   const renderContent = () => {
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard requests={displayRequests} />;
+        return <Dashboard />;
       case 'requests':
         return (
           <RequestsList
@@ -69,7 +69,7 @@ function App() {
           </div>
         );
       default:
-        return <Dashboard requests={displayRequests} />;
+        return <Dashboard />;
     }
   };
 
@@ -97,7 +97,6 @@ function App() {
                   ...formData,
                   title: formData.title || 'Untitled',
                 });
-
                 toast.success('✅ New request submitted!');
                 addNotification(`📝 Request from ${formData.loggedBy} added`);
                 openPanel();
